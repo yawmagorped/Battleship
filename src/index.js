@@ -1,17 +1,27 @@
 //import "./style.css";
 
-export { Ship, GameBoard };
+export { Ship, GameBoard, IDBase };
 
 const BOARD_SIZE = 10;
+const States = Object.freeze({
+    EMPTY: null,
+    EMPTY_HIT: 1,
+});
+
+const IDBase = 1000;
+const MAX_SHIP_COUNT = IDBase / 10;
 
 const Ship = (inputLength, inputID) => {
-
   let _length = inputLength;
   let _rotation = 0;
-  let _ID = inputID;
+  let _processedID = IDBase + inputID;
   let _hitCount = 0;
 
   const hit = (numberOfHits = 1) => {
+    if(isSunk()) {
+      console.error("hit was called even though the ship has sunk");
+      return;
+    }
     _hitCount = _hitCount + numberOfHits;
   }
 
@@ -30,8 +40,8 @@ const Ship = (inputLength, inputID) => {
     get length() {
       return _length;
     },
-    get ID() {
-      return _ID;
+    get processedID() {
+      return _processedID;
     },
     get rotation() {
       return _rotation;
@@ -47,12 +57,11 @@ const GameBoard = () => {
   for (let i = 0; i < BOARD_SIZE; i++) { 
     _board[i] = [];
     for (let j = 0; j < BOARD_SIZE; j++) {
-      _board[i].push(null);
+      _board[i].push(States.EMPTY);
     }
   }
 
-  
-  const placeShip = (x, y, rotation, shipToPlace) => {
+  const placeShip = (x, y, rotation, shipToPlace) => { // only checks the first room
     let counter;
     switch (rotation) {
       case 0:
@@ -64,7 +73,7 @@ const GameBoard = () => {
         }
         for (let i = 0; i < shipToPlace.length; i++) {
           if (_board[x][counter] == null) {
-            _board[x][counter] = shipToPlace.ID;
+            _board[x][counter] = shipToPlace.processedID;
             // console.log(x + ", " + counter + " ==> " + _board[x][counter])
             counter++
           } else { // throw an error
@@ -81,7 +90,7 @@ const GameBoard = () => {
         }
         for (let i = 0; i < shipToPlace.length; i++) {
           if (_board[counter][y] == null) {
-            _board[counter][y] = shipToPlace.ID;
+            _board[counter][y] = shipToPlace.processedID;
             counter++;
           } else { // throw an error
             console.error("failed to add ship");
@@ -93,20 +102,43 @@ const GameBoard = () => {
     _shipList.push(shipToPlace);
   }
 
-  // placeShip(1, 2, 0, Ship(2, 101));
-  // placeShip(2, 3, 90, Ship(3, 102));
-  // placeShip(3, 4, 0, Ship(3, 103));
-  // placeShip(5, 6, 90, Ship(4, 104));
-  // placeShip(6, 7, 0, Ship(5, 105));
+  // placeShip(1, 2, 0, Ship(2, 1));
+  // placeShip(2, 3, 90, Ship(3, 2));
+  // placeShip(3, 4, 0, Ship(3, 3));
+  // placeShip(5, 6, 90, Ship(4, 4));
+  // placeShip(6, 7, 0, Ship(5, 5));
+
+  const receiveAttack = (x, y) => {
+    if(Math.floor(_board[x][y] / MAX_SHIP_COUNT) == (IDBase / MAX_SHIP_COUNT)) {
+      getShip(_board[x][y]).hit();
+    } else if(_board[x][y] == States.EMPTY) {
+      _board[x][y] = States.EMPTY_HIT;
+    } else
+    {
+      console.log("not a valid target to receive an attack");
+    }
+  }
+
+  const getShip = (ID) => { 
+    if (ID < IDBase) {
+      ID = ID + IDBase;
+    }
+    return _shipList.find((element) => element.processedID == ID);
+  }
 
   return {
     get board() {
       return _board;
     },
-
-    placeShip
+    get shipList() {
+      return _shipList;
+    },
+    placeShip, receiveAttack, getShip
   }
 }
 
-let gameBoard = GameBoard();
-gameBoard.placeShip(8, 2, 90, Ship(3, 101));
+  let gameBoard = GameBoard();
+  gameBoard.placeShip(5, 2, 90, Ship(3, 1));
+  gameBoard.receiveAttack(5, 2);
+  console.log(gameBoard.shipList[0].hitCount);
+  console.log(gameBoard.getShip(1));
