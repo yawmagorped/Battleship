@@ -126,6 +126,15 @@ const GameBoard = () => {
     return _shipList.find((element) => element.processedID == ID);
   }
 
+  const areAllShipsSunk = () => {
+    _shipList.forEach((element) => {
+      if (!element.isSunk) {
+        return false;
+      }
+    });
+    return true;
+  }
+
   return {
     get board() {
       return _board;
@@ -133,7 +142,7 @@ const GameBoard = () => {
     get shipList() {
       return _shipList;
     },
-    placeShip, receiveAttack, getShip
+    placeShip, receiveAttack, getShip, areAllShipsSunk
   }
 }
 
