@@ -100,6 +100,40 @@ const GameBoard = () => {
     _shipList.push(shipToPlace);
   }
 
+  const checkForCollisions = (x, y, rotation, shipToPlace) => {
+    switch (rotation) {
+      case 0:
+      default:
+        if (0 >= y || y + shipToPlace.length > BOARD_SIZE) {
+          return false;
+        }
+        break; 
+      case 90:
+        if (0 >= x || x + shipToPlace.length > BOARD_SIZE) {
+          console.error("failed to add ship");
+          return;
+        }
+        break;
+    }
+
+    for (let index = 0; index < shipToPlace.length; index++) {
+      switch(rotation) {
+        case 0:
+        default:
+          if(_board[x][y + index] != null) {
+            return false;
+          }
+          break;
+        case 90:
+          if(_board[x + index][y] != null) {
+            return false;
+          }
+          break;
+      }
+    }
+  }
+
+
   // placeShip(1, 2, 0, Ship(2, 1));
   // placeShip(2, 3, 90, Ship(3, 2));
   // placeShip(3, 4, 0, Ship(3, 3));
