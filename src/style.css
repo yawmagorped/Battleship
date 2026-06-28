@@ -23,7 +23,11 @@ body {
 }
 
 .board-container img {
-    width: 50px;
+    width: 52px;
+}
+
+.toolbar {
+
 }
 
 .left-toolbar {

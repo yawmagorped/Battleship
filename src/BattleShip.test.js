@@ -70,11 +70,11 @@ describe("GameBoard tests", () => {
 
     test("placing a ship on top of another ship", () => {
         testGameBoard.placeShip(1, 2, 0, testShip);
-        testGameBoard.placeShip(1, 2, 0, Ship(5, 3));
+        testGameBoard.placeShip(1, 3, 0, Ship(5, 3));
 
         expect([testGameBoard.board[1][2],
             testGameBoard.board[4][2]
-        ]).toEqual([IDBase + 1, null]);
+        ]).toEqual([IDBase + testShipID, null]);
 
     });
 

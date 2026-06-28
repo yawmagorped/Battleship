@@ -59,41 +59,27 @@ const GameBoard = () => {
     }
   }
 
-  const placeShip = (x, y, rotation, shipToPlace) => { // only checks the first room
+  const placeShip = (x, y, rotation, shipToPlace) => { 
+    if(!checkForCollisions(x, y, rotation, shipToPlace)) {
+      console.log("ship placement cancelled")
+      return;
+    }
     let counter;
     switch (rotation) {
       case 0:
       default:
         counter = y;
-        if (0 >= y || y + shipToPlace.length > BOARD_SIZE) {
-          console.error("failed to add ship");
-          return;
-        }
         for (let i = 0; i < shipToPlace.length; i++) {
-          if (_board[x][counter] == null) {
             _board[x][counter] = shipToPlace.processedID;
             // console.log(x + ", " + counter + " ==> " + _board[x][counter])
             counter++
-          } else { // throw an error
-            console.error("failed to add ship");
-            return;
-          }
         }
         break;
       case 90:
         counter = x;
-        if (0 >= x || x + shipToPlace.length > BOARD_SIZE) {
-          console.error("failed to add ship");
-          return;
-        }
         for (let i = 0; i < shipToPlace.length; i++) {
-          if (_board[counter][y] == null) {
-            _board[counter][y] = shipToPlace.processedID;
-            counter++;
-          } else { // throw an error
-            console.error("failed to add ship");
-            return;
-          }
+          _board[counter][y] = shipToPlace.processedID;
+          counter++;
         }
         break;
     }
@@ -110,12 +96,10 @@ const GameBoard = () => {
         break; 
       case 90:
         if (0 >= x || x + shipToPlace.length > BOARD_SIZE) {
-          console.error("failed to add ship");
-          return;
+          return false;
         }
         break;
     }
-
     for (let index = 0; index < shipToPlace.length; index++) {
       switch(rotation) {
         case 0:
@@ -131,8 +115,8 @@ const GameBoard = () => {
           break;
       }
     }
+    return true;
   }
-
 
   // placeShip(1, 2, 0, Ship(2, 1));
   // placeShip(2, 3, 90, Ship(3, 2));
@@ -189,11 +173,14 @@ const Player = (inputName, inputType) => {
     get type() {
       return _type;
     },
+    get playersGameBoard() {
+      return _playersGameBoard;
+    }
   }
 }
 
   let gameBoard = GameBoard();
   gameBoard.placeShip(5, 2, 90, Ship(3, 1));
   gameBoard.receiveAttack(5, 2);
-  console.log(gameBoard.shipList[0].hitCount);
+  // console.log(gameBoard.shipList[0].hitCount);
   console.log(gameBoard.getShip(1));
