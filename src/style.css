@@ -23,11 +23,7 @@ body {
 }
 
 .board-container img {
-    width: 52px;
-}
-
-.toolbar {
-
+    width: 45px;
 }
 
 .left-toolbar {
@@ -48,4 +44,12 @@ body {
     flex-direction: column;
     justify-content: center;
     gap: 10px;
+}
+
+.toolbar img .unavailable {
+    filter: opacity(0.5) drop-shadow(0 0 0 red);
+}
+
+.toolbar img {
+
 }

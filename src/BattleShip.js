@@ -1,9 +1,14 @@
 export { Ship, GameBoard, Player, IDBase };
+export const events = new EventTarget();
 
 const BOARD_SIZE = 10;
 const States = Object.freeze({
     EMPTY: null,
     EMPTY_HIT: 1,
+});
+const Types = Object.freeze({
+  HUMAN: 0,
+  MACHINE: 1,
 });
 
 const IDBase = 1000;
@@ -51,6 +56,7 @@ const Ship = (inputLength, inputID) => {
 const GameBoard = () => {
   let _board = [];
   let _shipList = [];
+  let _shipRule = [2, 2, 3, 4, 5];
   
   for (let i = 0; i < BOARD_SIZE; i++) { 
     _board[i] = [];
@@ -59,10 +65,34 @@ const GameBoard = () => {
     }
   }
 
-  const placeShip = (x, y, rotation, shipToPlace) => { 
+  const ruleCheck = (length) => { // checking that the ships placed are [2, 2, 3, 4, 5]
+    if (_shipRule.includes(length)) {
+      _shipRule[_shipRule.indexOf(length)] = -1;
+      
+      if(!_shipRule.includes(length)) {
+        let event = new CustomEvent('onShipPlacementLimit', {
+          detail: {
+            shipLength: length
+          }
+        });
+        events.dispatchEvent(event);
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  const placeShip = (x, y, rotation, shipToPlace) => {
+    
+    if (!ruleCheck(shipToPlace.length)) {
+      console.error("unable to place more ships due the limit of ships have been reached");
+      return false;
+    }
+    
     if(!checkForCollisions(x, y, rotation, shipToPlace)) {
       console.log("ship placement cancelled")
-      return;
+      return false;
     }
     let counter;
     switch (rotation) {
@@ -85,6 +115,8 @@ const GameBoard = () => {
     }
     _shipList.push(shipToPlace);
   }
+
+
 
   const checkForCollisions = (x, y, rotation, shipToPlace) => {
     switch (rotation) {
@@ -131,7 +163,7 @@ const GameBoard = () => {
       _board[x][y] = States.EMPTY_HIT;
     } else
     {
-      console.log("not a valid target to receive an attack");
+      console.error("not a valid target to receive an attack");
     }
   }
 
@@ -166,6 +198,15 @@ const Player = (inputName, inputType) => {
   let _name = inputName;
   let _type = inputType;
   let _playersGameBoard = GameBoard();
+                                // if (_type == Types.HUMAN) {
+                                //   let event = new CustomEvent('OnShipPlacement', {
+                                //     detail: {
+                                //       shipList: _playersGameBoard.shipList
+                                //     }
+                                //   });
+                                //   events.dispatchEvent(event);
+                                // }
+
   return {
     get name() {
       return _name;
