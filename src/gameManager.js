@@ -50,8 +50,8 @@ const GameUIManager = (() => {
             if (toggle  == 1) {
                 shipLength = clone.dataset.length;
                 let offsetFromMouse = (shipLength-1) - Math.floor(offsetY / SHIP_LENGTH);
-                // console.log(e.target.parentElement.dataset.col, e.target.parentElement.dataset.row  - offsetFromMouse)
-                // console.log(e.target.parentElement.dataset.col - offsetFromMouse, e.target.parentElement.dataset.row)
+                console.log(e.target.parentElement.dataset.col, e.target.parentElement.dataset.row  - offsetFromMouse)
+                console.log(e.target.parentElement.dataset.col - offsetFromMouse, e.target.parentElement.dataset.row)
                 let x, y;
                 if (rotation == 0) {
                     x = e.target.parentElement.dataset.col;
@@ -62,7 +62,10 @@ const GameUIManager = (() => {
                 }
                 let event = new CustomEvent('onShipPlacement', {
                     detail: {
-                        
+                        x:x,
+                        y:y,
+                        rotation:rotation,
+                        length:shipLength       
                     }
                 });
                 // let event = new CustomEvent('onShipPlcement', {
@@ -130,6 +133,19 @@ const GameUIManager = (() => {
         }
     });
 
+    events.addEventListener('onSuccessfulShipPlacement', (e) => {
+        if (clone) {
+            clone.remove();
+            clone = null;
+            toggle = 1 - toggle; 
+        }
+        if (e.detail.rotation == 0) {
+            drawShip(e.detail.x, e.detail.y + e.detail.length-1 , e.detail.rotation, e.detail.length);
+        } else if(e.detail.rotation == 90) {
+            drawShip(e.detail.x + e.detail.length - 1, e.detail.y, e.detail.rotation, e.detail.length);
+        }
+    });
+
     const drawShip = (posX, posY, rotation, length) => {
         let imageToDraw = toolbars.find((element) => element.dataset.length == length);
         let cloneImage = imageToDraw.cloneNode();
@@ -138,12 +154,14 @@ const GameUIManager = (() => {
         cloneImage.style.position = "fixed";
         cloneImage.style.pointerEvents = "none";
         cloneImage.style.opacity = "0.6";
+        cloneImage.style.transformOrigin = "top left";
         if (rotation == 0) {
             cloneImage.style.rotate = "0deg"; 
+            cloneImage.style.left = `${selectedGridHouseRect.left}px`;
         } else if (rotation == 90) {
             cloneImage.style.rotate = "90deg";
+            cloneImage.style.left = `${selectedGridHouseRect.right}px`;
         }
-        cloneImage.style.left = `${selectedGridHouseRect.left}px`;
         cloneImage.style.top = `${selectedGridHouseRect.top}px`;
 
         myBoardContainer.appendChild(cloneImage);

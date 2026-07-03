@@ -17,7 +17,7 @@ const IDBase = 1000;
 const MAX_SHIP_COUNT = IDBase / 10;
 
 const Ship = (inputLength, inputID) => {
-  let _length = inputLength;
+  let _length = Number(inputLength);
   let _rotation = 0;
   let _processedID = IDBase + inputID;
   let _hitCount = 0;
@@ -82,23 +82,25 @@ const GameBoard = () => {
     }
   }
 
-  events.addEventListener('onShipPlcement', (e) => {
-    placeShip(e.detail.row - e.detail.offset)
+  let idCounter = 0;
+  events.addEventListener('onShipPlacement', (e) => {
+    if(placeShip(e.detail.x, e.detail.y, e.detail.rotation, Ship(e.detail.length, idCounter))) {
+      idCounter++;
+    }
   });
 
   const placeShip = (x, y, rotation, shipToPlace) => {
     
-    if (!ruleCheck(shipToPlace.length)) {
-      console.error("unable to place more ships due the limit of ships have been reached");
-      return false;
-    }
-    
-      _shipRule[_shipRule.indexOf(shipToPlace.length)] = -1;
-
     if(!checkForCollisions(x, y, rotation, shipToPlace)) {
       console.log("ship placement cancelled")
       return false;
     }
+    if (!ruleCheck(shipToPlace.length)) {
+      console.error("unable to place more ships due the limit of ships have been reached");
+      return false;
+    }
+    _shipRule[_shipRule.indexOf(shipToPlace.length)] = -1;
+    
     let counter;
     switch (rotation) {
       case 0:
@@ -119,6 +121,18 @@ const GameBoard = () => {
         break;
     }
     _shipList.push(shipToPlace);
+
+    let event = new CustomEvent('onSuccessfulShipPlacement',{
+      detail: {
+        x:x,
+        y:y,
+        rotation:rotation,
+        length:shipToPlace.length
+      }
+    });
+    events.dispatchEvent(event);
+
+    return true;
   }
 
 
@@ -127,12 +141,12 @@ const GameBoard = () => {
     switch (rotation) {
       case 0:
       default:
-        if (0 >= y || y + shipToPlace.length > BOARD_SIZE) {
+        if (0 > y || y + shipToPlace.length > BOARD_SIZE) {
           return false;
         }
         break; 
       case 90:
-        if (0 >= x || x + shipToPlace.length > BOARD_SIZE) {
+        if (0 > x || x + shipToPlace.length > BOARD_SIZE) {
           return false;
         }
         break;
@@ -226,7 +240,7 @@ const Player = (inputName, inputType) => {
 }
 
   let gameBoard = GameBoard();
-  gameBoard.placeShip(5, 2, 90, Ship(3, 1));
-  gameBoard.receiveAttack(5, 2);
+  // gameBoard.placeShip(5, 2, 90, Ship(3, 1));
+  // gameBoard.receiveAttack(5, 2);
   // console.log(gameBoard.shipList[0].hitCount);
-  console.log(gameBoard.getShip(1));
+  // console.log(gameBoard.getShip(1));
