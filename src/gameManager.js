@@ -12,7 +12,8 @@ const GameUIManager = (() => {
     const board = document.querySelector(".board-section");
     const toolbars = [...document.querySelectorAll(".toolbar img")];
     const myBoardHouses = [...document.querySelectorAll(".my-board .board-container img")];
-    
+    const myBoardContainer = document.querySelector(".my-board");
+
     let toggle = 0;
     let clone;
     let offsetX = 0;
@@ -129,13 +130,24 @@ const GameUIManager = (() => {
         }
     });
 
-    // toolbars.forEach((shipImg) => {
-    //     shipImg.addEventListener('onShipPlacementLimitReached', (e) => {
-    //         if (shipImg.id == `ship-${e.detail.shipLength}`) {
-    //             shipImg.classList.add("unavailable");
-    //         }
-    //     })
-    // });
+    const drawShip = (posX, posY, rotation, length) => {
+        let imageToDraw = toolbars.find((element) => element.dataset.length == length);
+        let cloneImage = imageToDraw.cloneNode();
+        let selectedGridHouse = myBoardHouses.find((element) => element.parentElement.dataset.col == posX && element.parentElement.dataset.row == posY);
+        let selectedGridHouseRect = selectedGridHouse.getBoundingClientRect();
+        cloneImage.style.position = "fixed";
+        cloneImage.style.pointerEvents = "none";
+        cloneImage.style.opacity = "0.6";
+        if (rotation == 0) {
+            cloneImage.style.rotate = "0deg"; 
+        } else if (rotation == 90) {
+            cloneImage.style.rotate = "90deg";
+        }
+        cloneImage.style.left = `${selectedGridHouseRect.left}px`;
+        cloneImage.style.top = `${selectedGridHouseRect.top}px`;
+
+        myBoardContainer.appendChild(cloneImage);
+    }
 })();
 
 const GameManager = (() => {
