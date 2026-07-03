@@ -65,23 +65,24 @@ const GameBoard = () => {
     }
   }
 
-  const ruleCheck = (length) => { // checking that the ships placed are [2, 2, 3, 4, 5]
-    if (_shipRule.includes(length)) {
-      _shipRule[_shipRule.indexOf(length)] = -1;
-      
-      if(!_shipRule.includes(length)) {
-        let event = new CustomEvent('onShipPlacementLimit', {
+  const ruleCheck = (shipLength) => { // checking that the ships placed are [2, 2, 3, 4, 5]
+    if (_shipRule.includes(shipLength)) {
+
+      return true;
+    } else if(!_shipRule.includes(shipLength)) {
+        let event = new CustomEvent('onShipPlacementLimitReached', {
           detail: {
-            shipLength: length
+            shipLength: shipLength
           }
         });
         events.dispatchEvent(event);
-      }
-      return true;
-    } else {
       return false;
     }
   }
+
+  events.addEventListener('onShipPlcement', (e) => {
+    placeShip(e.detail.row - e.detail.offset)
+  });
 
   const placeShip = (x, y, rotation, shipToPlace) => {
     
@@ -90,6 +91,8 @@ const GameBoard = () => {
       return false;
     }
     
+      _shipRule[_shipRule.indexOf(shipToPlace.length)] = -1;
+
     if(!checkForCollisions(x, y, rotation, shipToPlace)) {
       console.log("ship placement cancelled")
       return false;
