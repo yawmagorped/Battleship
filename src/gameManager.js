@@ -19,6 +19,7 @@ const GameUIManager = (() => {
     let offsetY = 0;
     let rotation = 0;
     let shipLength;
+    let selectedRect;
     const shipPlacing = (e) => {
         // console.log(e.target.parentElement.dataset.col, e.target.parentElement.dataset.row);
         if (toolbars.includes(e.target)) {
@@ -26,15 +27,16 @@ const GameUIManager = (() => {
             if (toggle == 0) {
                 clone = e.target.cloneNode();
                 
-                const rect = e.target.getBoundingClientRect();
-                offsetX = e.clientX - rect.left;
-                offsetY = e.clientY - rect.top;
+                selectedRect = e.target.getBoundingClientRect();
+                offsetX = e.clientX - selectedRect.left;
+                offsetY = e.clientY - selectedRect.top;
                 
                 clone.style.position = "fixed";
                 clone.style.pointerEvents = "none";
                 clone.style.opacity = "0.6";
-                clone.style.left = `${e.clientX - offsetX}px`;
-                clone.style.top = `${e.clientY - offsetY}px`;
+
+                updateClonePosition(pos.free_roam, [e.clientX, e.clientY]);
+                
                 toolbars[0].parentElement.appendChild(clone);
                 // console.log(offsetY / SHIP_LENGTH);
             } else if (toggle == 1) {
@@ -48,17 +50,20 @@ const GameUIManager = (() => {
                 shipLength = clone.dataset.length;
                 let offsetFromMouse = (shipLength-1) - Math.floor(offsetY / SHIP_LENGTH);
                 // console.log(e.target.parentElement.dataset.col, e.target.parentElement.dataset.row  - offsetFromMouse)
+                // console.log(e.target.parentElement.dataset.col - offsetFromMouse, e.target.parentElement.dataset.row)
+                let x, y;
+                if (rotation == 0) {
+                    x = e.target.parentElement.dataset.col;
+                    y = e.target.parentElement.dataset.row - offsetFromMouse;
+                } else if (rotation == 90) {
+                    x = e.target.parentElement.dataset.col - offsetFromMouse;
+                    y = e.target.parentElement.dataset.row;
+                }
                 let event = new CustomEvent('onShipPlacement', {
                     detail: {
-
+                        
                     }
                 });
-                if (rotation == 0) {
-                    event.detail = {
-                        x: e.target.parentElement.dataset.col,
-                        y: e.target.parentElement.dataset.row - offsetFromMouse,
-                    }
-                }
                 // let event = new CustomEvent('onShipPlcement', {
                 //     detail: {
                 //         x: e.target.dataset.parentElement.col,
@@ -79,18 +84,20 @@ const GameUIManager = (() => {
             if (clone.style.rotate == "0deg" || !clone.style.rotate) {
                 clone.style.rotate = "90deg";
                 rotation = 90;
+                updateClonePosition(pos.snap_rotation_90, null, selectedRect);    
             } else {
                 clone.style.rotate = "0deg";
                 rotation = 0;
+                updateClonePosition(pos.snap_rotation_0, null, selectedRect);
             }
         }
     })
 
-    const updateClonePosition = (mode, rect = null) => {
+    const updateClonePosition = (mode, clientPositions = null, rect = null) => {
         switch (mode) {
             case pos.free_roam:
-                clone.style.left = `${e.clientX - offsetX}px`;
-                clone.style.top = `${e.clientY - offsetY}px`;
+                clone.style.left = `${clientPositions[0] - offsetX}px`;
+                clone.style.top = `${clientPositions[1] - offsetY}px`;
                 break;
             case pos.snap_rotation_0:
                 clone.style.left = `${rect.left}px`;
@@ -110,13 +117,11 @@ const GameUIManager = (() => {
     board.addEventListener('mousemove', (e) => {
         if (!clone) return;
         if (myBoardHouses.includes(e.target)) {
-            const rect = e.target.getBoundingClientRect();
+            selectedRect = e.target.getBoundingClientRect();
             if (rotation == 0) {
-                clone.style.left = `${rect.left}px`;
-                clone.style.top = `${(rect.top - Math.floor(offsetY / SHIP_LENGTH) * SHIP_LENGTH) }px`;
+                updateClonePosition(pos.snap_rotation_0, null, selectedRect);
             } else {
-                clone.style.left = `${rect.left + (Math.floor(offsetY / SHIP_LENGTH)+1) * SHIP_LENGTH}px`;
-                clone.style.top = `${(rect.top) }px`;
+                updateClonePosition(pos.snap_rotation_90, null, selectedRect);
             }
         } else {
             clone.style.left = `${e.clientX - offsetX}px`;

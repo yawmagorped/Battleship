@@ -2,10 +2,12 @@ export { Ship, GameBoard, Player, IDBase };
 export const events = new EventTarget();
 
 const BOARD_SIZE = 10;
+
 const States = Object.freeze({
     EMPTY: null,
     EMPTY_HIT: 1,
 });
+
 const Types = Object.freeze({
   HUMAN: 0,
   MACHINE: 1,
