@@ -35,10 +35,10 @@ const GameUIManager = (() => {
                 clone.style.position = "fixed";
                 clone.style.pointerEvents = "none";
                 clone.style.opacity = "0.6";
-
+                clone.style.transformOrigin = "top left";
                 updateClonePosition(pos.free_roam, [e.clientX, e.clientY]);
                 
-                toolbars[0].parentElement.appendChild(clone);
+                myBoardContainer.appendChild(clone);
                 // console.log(offsetY / SHIP_LENGTH);
             } else if (toggle == 1) {
                 if (!clone) return;
@@ -50,8 +50,8 @@ const GameUIManager = (() => {
             if (toggle  == 1) {
                 shipLength = clone.dataset.length;
                 let offsetFromMouse = (shipLength-1) - Math.floor(offsetY / SHIP_LENGTH);
-                console.log(e.target.parentElement.dataset.col, e.target.parentElement.dataset.row  - offsetFromMouse)
-                console.log(e.target.parentElement.dataset.col - offsetFromMouse, e.target.parentElement.dataset.row)
+                // console.log(e.target.parentElement.dataset.col, e.target.parentElement.dataset.row  - offsetFromMouse)
+                // console.log(e.target.parentElement.dataset.col - offsetFromMouse, e.target.parentElement.dataset.row)
                 let x, y;
                 if (rotation == 0) {
                     x = e.target.parentElement.dataset.col;
@@ -151,7 +151,7 @@ const GameUIManager = (() => {
         let cloneImage = imageToDraw.cloneNode();
         let selectedGridHouse = myBoardHouses.find((element) => element.parentElement.dataset.col == posX && element.parentElement.dataset.row == posY);
         let selectedGridHouseRect = selectedGridHouse.getBoundingClientRect();
-        cloneImage.style.position = "fixed";
+        cloneImage.style.position = "absolute";
         cloneImage.style.pointerEvents = "none";
         cloneImage.style.opacity = "0.6";
         cloneImage.style.transformOrigin = "top left";
@@ -162,10 +162,15 @@ const GameUIManager = (() => {
             cloneImage.style.rotate = "90deg";
             cloneImage.style.left = `${selectedGridHouseRect.right}px`;
         }
-        cloneImage.style.top = `${selectedGridHouseRect.top}px`;
+        cloneImage.style.top = `${selectedGridHouseRect.top + window.scrollY}px`;
 
         myBoardContainer.appendChild(cloneImage);
     }
+    
+    events.addEventListener('onShipPlacementLimitReached', (e) => {
+        let selectedToolbar = document.querySelector(`.toolbar img[data-length="${e.detail.shipLength}"]`);
+        selectedToolbar.classList.add("unavailable");
+    });
 })();
 
 const GameManager = (() => {

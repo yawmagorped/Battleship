@@ -69,7 +69,6 @@ const GameBoard = () => {
 
   const ruleCheck = (shipLength) => { // checking that the ships placed are [2, 2, 3, 4, 5]
     if (_shipRule.includes(shipLength)) {
-
       return true;
     } else if(!_shipRule.includes(shipLength)) {
         let event = new CustomEvent('onShipPlacementLimitReached', {
@@ -96,11 +95,11 @@ const GameBoard = () => {
       return false;
     }
     if (!ruleCheck(shipToPlace.length)) {
-      console.error("unable to place more ships due the limit of ships have been reached");
+      console.log("unable to place more ships due the limit of ships have been reached");
       return false;
     }
     _shipRule[_shipRule.indexOf(shipToPlace.length)] = -1;
-    
+
     let counter;
     switch (rotation) {
       case 0:
@@ -121,6 +120,7 @@ const GameBoard = () => {
         break;
     }
     _shipList.push(shipToPlace);
+    ruleCheck(shipToPlace.length);
 
     let event = new CustomEvent('onSuccessfulShipPlacement',{
       detail: {
@@ -131,7 +131,6 @@ const GameBoard = () => {
       }
     });
     events.dispatchEvent(event);
-
     return true;
   }
 
@@ -209,7 +208,7 @@ const GameBoard = () => {
     get shipList() {
       return _shipList;
     },
-    placeShip, receiveAttack, getShip, areAllShipsSunk
+    placeShip, receiveAttack, getShip, areAllShipsSunk, checkForCollisions
   }
 }
 

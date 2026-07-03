@@ -103,6 +103,14 @@ describe("GameBoard tests", () => {
         expect(testGameBoard.areAllShipsSunk()).toBe(true);
     });
 
+    test("checking collisions (0deg)", () => {
+        testGameBoard.placeShip(2 , 2, 90, testShip);
+        expect(testGameBoard.checkForCollisions(3, 0, 0, Ship(5, 123))).toBe(false);
+    })
+    test("checking collisions (90deg)", () => {
+        testGameBoard.placeShip(2 , 2, 0, testShip);
+        expect(testGameBoard.checkForCollisions(0, 2, 90, Ship(5, 123))).toBe(false);
+    })
     // afterAll(() => {
     //     for (let i = 0; i < 10; i++) {
     //         console.log(testGameBoard.board[i]);

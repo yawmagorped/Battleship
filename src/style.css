@@ -46,7 +46,7 @@ body {
     gap: 10px;
 }
 
-.toolbar img .unavailable {
+.toolbar img.unavailable {
     filter: opacity(0.5) drop-shadow(0 0 0 red);
 }
 
