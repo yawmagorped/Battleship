@@ -1,4 +1,4 @@
-import {Ship, GameBoard, Player, IDBase, events} from "./BattleShip.js";
+import {Ship, GameBoard, Player, IDBase, events, Types} from "./BattleShip.js";
 
 const SHIP_LENGTH = 50;
 
@@ -12,6 +12,7 @@ const GameUIManager = (() => {
     const board = document.querySelector(".board-section");
     const toolbars = [...document.querySelectorAll(".toolbar img")];
     const myBoardHouses = [...document.querySelectorAll(".my-board .board-container img")];
+    const enemyBoard = [...document.querySelectorAll(".enemy-board .board-container img")];
     const myBoardContainer = document.querySelector(".my-board");
 
     let toggle = 0;
@@ -140,16 +141,21 @@ const GameUIManager = (() => {
             toggle = 1 - toggle; 
         }
         if (e.detail.rotation == 0) {
-            drawShip(e.detail.x, e.detail.y + e.detail.length-1 , e.detail.rotation, e.detail.length);
+            drawShip(e.detail.x, e.detail.y + e.detail.length-1 , e.detail.rotation, e.detail.length, e.detail.type);
         } else if(e.detail.rotation == 90) {
-            drawShip(e.detail.x + e.detail.length - 1, e.detail.y, e.detail.rotation, e.detail.length);
+            drawShip(e.detail.x + e.detail.length - 1, e.detail.y, e.detail.rotation, e.detail.length, e.detail.type);
         }
     });
 
-    const drawShip = (posX, posY, rotation, length) => {
+    const drawShip = (posX, posY, rotation, length, type) => {
         let imageToDraw = toolbars.find((element) => element.dataset.length == length);
         let cloneImage = imageToDraw.cloneNode();
-        let selectedGridHouse = myBoardHouses.find((element) => element.parentElement.dataset.col == posX && element.parentElement.dataset.row == posY);
+        let selectedGridHouse;
+        if (type == Types.HUMAN) {
+            selectedGridHouse = myBoardHouses.find((element) => element.parentElement.dataset.col == posX && element.parentElement.dataset.row == posY);
+        } else if (type == Types.MACHINE) {
+            selectedGridHouse = enemyBoard.find((element) => element.parentElement.dataset.col == posX && element.parentElement.dataset.row == posY);
+        }
         let selectedGridHouseRect = selectedGridHouse.getBoundingClientRect();
         cloneImage.style.position = "absolute";
         cloneImage.style.pointerEvents = "none";
@@ -175,5 +181,6 @@ const GameUIManager = (() => {
 
 const GameManager = (() => {
     
+    let enemy = Player("enemy", Types.MACHINE);
     return {}
 })();
