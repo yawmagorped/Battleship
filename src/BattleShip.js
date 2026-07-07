@@ -3,9 +3,10 @@ export const events = new EventTarget();
 
 const BOARD_SIZE = 10;
 
-const States = Object.freeze({
+export const States = Object.freeze({
     EMPTY: null,
     EMPTY_HIT: 1,
+    HIT: 2,
 });
 
 export const Types = Object.freeze({
@@ -60,7 +61,7 @@ const GameBoard = (type) => {
   let _shipList = [];
   let _shipRule = [2, 2, 3, 4, 5];
   let _boardType = type;
-  
+
   for (let i = 0; i < BOARD_SIZE; i++) { 
     _board[i] = [];
     for (let j = 0; j < BOARD_SIZE; j++) {
@@ -69,9 +70,21 @@ const GameBoard = (type) => {
   }
 
   const ruleCheck = (shipLength) => { // checking that the ships placed are [2, 2, 3, 4, 5]
+    if(_boardType == Types.MACHINE) {
+      if(_shipRule.includes(shipLength)) {
+        return true;
+      } else {
+        return false;
+      }
+    }
     if (_shipRule.includes(shipLength)) {
       return true;
     } else if(!_shipRule.includes(shipLength)) {
+        if (_shipRule.every(value => value === -1)) {
+          // console.log("all ships placed")
+          let event2 = new CustomEvent('onGameStart');
+          events.dispatchEvent(event2);
+        }
         let event = new CustomEvent('onShipPlacementLimitReached', {
           detail: {
             shipLength: shipLength
@@ -92,11 +105,11 @@ const GameBoard = (type) => {
   const placeShip = (x, y, rotation, shipToPlace) => {
     
     if(!checkForCollisions(x, y, rotation, shipToPlace)) {
-      console.log("ship placement cancelled")
+      // console.log("ship placement cancelled")
       return false;
     }
     if (!ruleCheck(shipToPlace.length)) {
-      console.log("unable to place more ships due the limit of ships have been reached");
+      // console.log("unable to place more ships due the limit of ships have been reached");
       return false;
     }
     _shipRule[_shipRule.indexOf(shipToPlace.length)] = -1;
@@ -121,7 +134,7 @@ const GameBoard = (type) => {
         break;
     }
     _shipList.push(shipToPlace);
-    ruleCheck(shipToPlace.length);
+      ruleCheck(shipToPlace.length);
 
     let event = new CustomEvent('onSuccessfulShipPlacement',{
       detail: {
@@ -170,20 +183,19 @@ const GameBoard = (type) => {
     return true;
   }
 
-  // placeShip(1, 2, 0, Ship(2, 1));
-  // placeShip(2, 3, 90, Ship(3, 2));
-  // placeShip(3, 4, 0, Ship(3, 3));
-  // placeShip(5, 6, 90, Ship(4, 4));
-  // placeShip(6, 7, 0, Ship(5, 5));
-
   const receiveAttack = (x, y) => {
     if(Math.floor(_board[x][y] / MAX_SHIP_COUNT) == (IDBase / MAX_SHIP_COUNT)) {
       getShip(_board[x][y]).hit();
+      _board[x][y] = States.HIT;
+      return States.HIT;
     } else if(_board[x][y] == States.EMPTY) {
       _board[x][y] = States.EMPTY_HIT;
-    } else
-    {
-      console.error("not a valid target to receive an attack");
+      return States.EMPTY_HIT;
+    } else if(_board[x][y] == States.HIT) {
+      return false;
+    } else {
+      // console.log("not a valid target to receive an attack");
+      return false;
     }
   }
 
@@ -195,22 +207,24 @@ const GameBoard = (type) => {
   }
 
   const areAllShipsSunk = () => {
+    let result = true;
     _shipList.forEach((element) => {
-      if (!element.isSunk) {
-        return false;
+      if (!element.isSunk()) {
+        result = false;
       }
     });
-    return true;
+    return result;
   }
 
   let enemyCounter = 50;
-  const placeShipsAtRandom = () => {
+  const placeShipsAtRandom = (shipType = Types.MACHINE) => {
     _shipRule.forEach((length) => {
       while(!placeShip(
         Math.floor(Math.random() * 10), 
         Math.floor(Math.random() * 10), 
         Math.floor(Math.random() * 2) * 90, 
-        Ship(length, enemyCounter))) {
+        Ship(length, enemyCounter),
+        shipType)) {
           continue;
       }
       enemyCounter++;
@@ -234,10 +248,31 @@ const GameBoard = (type) => {
 const Player = (inputName, inputType) => {
   let _name = inputName;
   let _type = inputType;
-  let _playersGameBoard = GameBoard(_type);
+  let _gameBoard = GameBoard(_type);
 
   if (_type == Types.MACHINE) {
-    _playersGameBoard.placeShipsAtRandom();
+    _gameBoard.placeShipsAtRandom();
+  }
+
+  const hit = (x = 0, y = 0) => {
+    if (_type == Types.HUMAN) {
+      x = Math.floor(Math.random() * 10);
+      y = Math.floor(Math.random() * 10);
+    }
+    let reciever = _gameBoard.receiveAttack(x, y); 
+    if(reciever) {
+      let event = new CustomEvent('onBoardHouseUpdate', {
+        detail: {
+          x: x,
+          y: y,
+          type: _type,
+          hitType: reciever
+        }
+      });
+      events.dispatchEvent(event);
+      return true;
+    } else
+        return false;
   }
 
   return {
@@ -247,9 +282,10 @@ const Player = (inputName, inputType) => {
     get type() {
       return _type;
     },
-    get playersGameBoard() {
-      return _playersGameBoard;
-    }
+    get gameBoard() {
+      return _gameBoard;
+    },
+    hit
   }
 }
 

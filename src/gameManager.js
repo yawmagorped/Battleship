@@ -1,4 +1,6 @@
-import {Ship, GameBoard, Player, IDBase, events, Types} from "./BattleShip.js";
+import {Ship, GameBoard, Player, IDBase, events, Types, States} from "./BattleShip.js";
+import IMG_hit from "./images/hit-circle.png";
+import IMG_emptyHit from "./images/filled-circle.png";
 
 const SHIP_LENGTH = 50;
 
@@ -14,7 +16,9 @@ const GameUIManager = (() => {
     const myBoardHouses = [...document.querySelectorAll(".my-board .board-container img")];
     const enemyBoard = [...document.querySelectorAll(".enemy-board .board-container img")];
     const myBoardContainer = document.querySelector(".my-board");
-
+    
+    let isTheGameStarted = false;
+    
     let toggle = 0;
     let clone;
     let offsetX = 0;
@@ -115,8 +119,22 @@ const GameUIManager = (() => {
         }
     }
 
+    events.addEventListener('onGameStart', () => {
+        isTheGameStarted = true;
+    });
+
     board.addEventListener('click', (e) => {
-        shipPlacing(e);
+        if (!isTheGameStarted) {
+            shipPlacing(e);
+        } else if (enemyBoard.includes(e.target)) {
+            let event = new CustomEvent('onHit', {
+                detail: {
+                    x: e.target.parentElement.dataset.col,
+                    y: e.target.parentElement.dataset.row
+                }
+            });
+            events.dispatchEvent(event);
+        }
     });
     
     board.addEventListener('mousemove', (e) => {
@@ -135,6 +153,9 @@ const GameUIManager = (() => {
     });
 
     events.addEventListener('onSuccessfulShipPlacement', (e) => {
+        if (e.detail.type == Types.MACHINE) {
+            return;
+        }
         if (clone) {
             clone.remove();
             clone = null;
@@ -154,7 +175,8 @@ const GameUIManager = (() => {
         if (type == Types.HUMAN) {
             selectedGridHouse = myBoardHouses.find((element) => element.parentElement.dataset.col == posX && element.parentElement.dataset.row == posY);
         } else if (type == Types.MACHINE) {
-            selectedGridHouse = enemyBoard.find((element) => element.parentElement.dataset.col == posX && element.parentElement.dataset.row == posY);
+            // if the game has ended
+            // selectedGridHouse = enemyBoard.find((element) => element.parentElement.dataset.col == posX && element.parentElement.dataset.row == posY);
         }
         let selectedGridHouseRect = selectedGridHouse.getBoundingClientRect();
         cloneImage.style.position = "absolute";
@@ -177,10 +199,41 @@ const GameUIManager = (() => {
         let selectedToolbar = document.querySelector(`.toolbar img[data-length="${e.detail.shipLength}"]`);
         selectedToolbar.classList.add("unavailable");
     });
+
+    events.addEventListener('onBoardHouseUpdate', (e) => {
+        let elementToUpdate;
+        if (e.detail.type == Types.HUMAN) {
+            elementToUpdate = board.querySelector(`.my-board [data-col="${e.detail.x}"][data-row="${e.detail.y}"] img`);
+        } else if (e.detail.type == Types.MACHINE) {
+            elementToUpdate = board.querySelector(`.enemy-board [data-col="${e.detail.x}"][data-row="${e.detail.y}"] img`);
+        }
+        if (e.detail.hitType == States.HIT) {
+            elementToUpdate.src = IMG_hit;
+        } else if (e.detail.hitType == States.EMPTY_HIT) {
+            elementToUpdate.src = IMG_emptyHit;
+        } else {
+            console.error("'onBoardHouseUpdate' was called on an empty house");
+        }
+    });
 })();
 
 const GameManager = (() => {
-    
-    let enemy = Player("enemy", Types.MACHINE);
+    const player = Player("player", Types.HUMAN);
+    const enemy = Player("enemy", Types.MACHINE);
+    let turn = 0;
+    events.addEventListener('onHit', (e) => {
+        if (!(player.gameBoard.areAllShipsSunk() || enemy.gameBoard.areAllShipsSunk())) {
+            while (!player.hit() && turn != 0) {
+                turn = 1;
+                continue;
+            }
+            if(!enemy.hit(e.detail.x, e.detail.y)) {
+                turn = 0;
+            }
+        } else {
+            console.log("game over");
+        }
+    });
+
     return {}
 })();
