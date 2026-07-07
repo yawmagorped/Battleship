@@ -5,11 +5,43 @@
 
 body {
     background-color: gray;
+    display: flex;
+    justify-content: center;
 }
+
+.left-side {
+    flex: 1;
+}
+
 .board-section {
+    flex:1;
+
     display: grid;
     justify-content: center;
     grid-template-columns: 50px auto 50px;
+}
+
+.right-side {
+    display: flex;
+    flex: 1;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.gameover-container {
+    padding: 10px;
+    padding-bottom: 15px;
+    font-size: 4em;
+    color: red;
+    background-color: blue;
+    border: 10px solid black;
+    border-radius: 10px;
+    transform: translateY(-100%);
+    transition: transform 5s ease-out 25ms;
+}
+
+.game-is-over {
+    transform: translateY(700%) rotateZ(360deg);
 }
 
 .board-container {

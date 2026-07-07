@@ -16,7 +16,7 @@ const GameUIManager = (() => {
     const myBoardHouses = [...document.querySelectorAll(".my-board .board-container img")];
     const enemyBoard = [...document.querySelectorAll(".enemy-board .board-container img")];
     const myBoardContainer = document.querySelector(".my-board");
-    
+    const gameOverContainer = document.querySelector(".gameover-container");
     let isTheGameStarted = false;
     
     let toggle = 0;
@@ -215,6 +215,11 @@ const GameUIManager = (() => {
             console.error("'onBoardHouseUpdate' was called on an empty house");
         }
     });
+
+    events.addEventListener('onGameOver', () => {
+        gameOverContainer.classList.toggle("game-is-over");
+    })
+
 })();
 
 const GameManager = (() => {
@@ -231,7 +236,7 @@ const GameManager = (() => {
                 turn = 0;
             }
         } else {
-            console.log("game over");
+            events.dispatchEvent(new CustomEvent('onGameOver'));
         }
     });
 
