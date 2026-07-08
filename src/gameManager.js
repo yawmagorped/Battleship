@@ -1,7 +1,7 @@
 import {Ship, GameBoard, Player, IDBase, events, Types, States} from "./BattleShip.js";
 import IMG_hit from "./images/hit-circle.png";
 import IMG_emptyHit from "./images/filled-circle.png";
-
+import IMG_explosion from "./images/explosion-boom.gif"
 const SHIP_LENGTH = 50;
 
 const pos = Object.freeze({
@@ -218,6 +218,15 @@ const GameUIManager = (() => {
 
     events.addEventListener('onGameOver', () => {
         gameOverContainer.classList.toggle("game-is-over");
+        setTimeout(() => {
+            let img = document.createElement("img");
+            img.src = IMG_explosion;
+            img.style.position = "absolute";
+            let rect = gameOverContainer.getBoundingClientRect();
+            img.style.left = `${120}px`;
+            // img.style.top = `${rect.top}px`;
+            gameOverContainer.appendChild(img);
+        }, 5250);
     })
 
 })();
@@ -239,6 +248,5 @@ const GameManager = (() => {
             events.dispatchEvent(new CustomEvent('onGameOver'));
         }
     });
-
     return {}
 })();

@@ -40,6 +40,10 @@ body {
     transition: transform 5s ease-out 25ms;
 }
 
+.gameover-container img {
+    transform: scale(2);
+}
+
 .game-is-over {
     transform: translateY(700%) rotateZ(360deg);
 }
